@@ -509,7 +509,7 @@ footer a{color:var(--lilla-lys);text-decoration:none}
 
     </div>
     <div class="kalender-bunntekst fade-in">
-      Påmelding og info: <a href="/cdn-cgi/l/email-protection#b0dbc2d9c3c4d9ded7c2dfdeded5c3f0c0c2dfc4dfdeddd1d9dc9ed3dfdd"><span class="__cf_email__" data-cfemail="d4bfa6bda7a0bdbab3a6bbbabab1a794a4a6bba0bbbab9b5bdb8fab7bbb9">[email&#160;protected]</span></a> &nbsp;·&nbsp; <a href="tel:40225996">402 25 996</a>
+      Påmelding og info: <a href="mailto:kristingronnes@protonmail.com">kristingronnes@protonmail.com</a> &nbsp;·&nbsp; <a href="tel:40225996">402 25 996</a>
     </div>
   </div>
 </section>
@@ -611,7 +611,7 @@ footer a{color:var(--lilla-lys);text-decoration:none}
         </li>
         <li>
           <div class="k-ikon">✉️</div>
-          <div class="k-detalj"><small>E-post</small><a href="/cdn-cgi/l/email-protection#bfd4cdd6cccbd6d1d8cdd0d1d1daccffcfcdd0cbd0d1d2ded6d391dcd0d2"><span class="__cf_email__" data-cfemail="f8938a918b8c91969f8a9796969d8bb8888a978c979695999194d69b9795">[email&#160;protected]</span></a></div>
+          <div class="k-detalj"><small>E-post</small><a href="mailto:kristingronnes@protonmail.com">kristingronnes@protonmail.com</a></div>
         </li>
         <li>
           <div class="k-ikon">📍</div>
@@ -622,9 +622,7 @@ footer a{color:var(--lilla-lys);text-decoration:none}
     <div class="kontakt-skjema fade-in">
       <h3>Send en melding</h3>
       <div class="skjema-felt">
-        <input type="text" placeholder="Ditt navn">
-        <input type="email" placeholder="E-postadresse">
-        <select>
+        <select id="skjema-emne">
           <option value="" disabled selected>Hva gjelder henvendelsen?</option>
           <option>Yoga</option>
           <option>Drømmetydning – heldagskurs</option>
@@ -635,8 +633,8 @@ footer a{color:var(--lilla-lys);text-decoration:none}
           <option>Lydbad / samling</option>
           <option>Annet</option>
         </select>
-        <textarea placeholder="Din melding..."></textarea>
-        <button type="button">Send melding</button>
+        <textarea id="skjema-melding" placeholder="Din melding..."></textarea>
+        <button type="button" onclick="sendSkjema()">Send melding</button>
       </div>
     </div>
   </div>
@@ -646,11 +644,11 @@ footer a{color:var(--lilla-lys);text-decoration:none}
 <footer>
   <span class="footer-logo">☀ Sol & Måne ☽</span>
   <p>Kristin Grønnes · Heggenveien 188, 3370 Vikersund</p>
-  <p><a href="tel:40225996">402 25 996</a> · <a href="/cdn-cgi/l/email-protection#fe958c978d8a9790998c9190909b8dbe8e8c918a9190939f9792d09d9193"><span class="__cf_email__" data-cfemail="69021b001a1d00070e1b0607070c1a29191b061d060704080005470a0604">[email&#160;protected]</span></a></p>
+  <p><a href="tel:40225996">402 25 996</a> · <a href="mailto:kristingronnes@protonmail.com">kristingronnes@protonmail.com</a></p>
   <p style="margin-top:1rem" class="footer-copy">© Sol & Måne · Alle rettigheter forbeholdt</p>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ===== STJERNER =====
 const sc = document.getElementById('stars');
 for (let i = 0; i < 55; i++) {
@@ -809,7 +807,25 @@ const mm = document.getElementById('mobilMeny');
 hb.addEventListener('click', () => { hb.classList.toggle('open'); mm.classList.toggle('open'); });
 function lukkMeny() { hb.classList.remove('open'); mm.classList.remove('open'); }
 
-// ===== FADE-IN =====
+// ===== KONTAKTSKJEMA =====
+function sendSkjema() {
+  const emne    = document.getElementById('skjema-emne').value;
+  const melding = document.getElementById('skjema-melding').value.trim();
+
+  if (!melding) {
+    alert('Vennligst skriv en melding.');
+    return;
+  }
+
+  const emneTekst = emne || 'Henvendelse fra nettside';
+
+  const mailto = `mailto:kristingronnes@protonmail.com`
+    + `?subject=${encodeURIComponent(emneTekst)}`
+    + `&body=${encodeURIComponent(melding)}`;
+
+  window.location.href = mailto;
+}
+
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('synlig'); });
 }, { threshold: 0.08 });
