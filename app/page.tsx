@@ -3,6 +3,7 @@ import type { Aktivitet, KalenderRad, Tjeneste, Referanse, GalleriBilde } from '
 import OrbitalCanvas from './components/OrbitalCanvas'
 import GalleriKarusell from './components/GalleriKarusell'
 import Stjerner from './components/Stjerner'
+export const revalidate = 0
 
 async function hentData() {
   const [akt, kal, tj, ref, gal] = await Promise.all([
