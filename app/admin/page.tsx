@@ -76,9 +76,7 @@ export default function AdminPage() {
   // ── LOGG INN ──
   const loggInn = async () => {
     if (!passord) { setPassordFeil('Skriv inn passord'); return }
-    const hash = await sha256(passord)
-    const res: { passord_hash: string }[] = await sbGet('sm_admin')
-    if (!res.length || res[0].passord_hash !== hash) {
+    if (passord !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
       setPassordFeil('Feil passord, prøv igjen'); return
     }
     sessionStorage.setItem('sm_innlogget', 'ja')
