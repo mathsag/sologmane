@@ -26,13 +26,8 @@ async function apiKall(metode: string, tabell: string, body?: object, id?: strin
 
 // ── SHA-256 ──
 async function sha256(tekst: string) {
-  const r = await fetch('/api/hash', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tekst })
-  })
-  const { hash } = await r.json()
-  return hash
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(tekst))
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 type Panel = 'galleri' | 'aktiviteter' | 'kalender' | 'tjenester' | 'referanser'
@@ -79,14 +74,16 @@ export default function AdminPage() {
   }
 
   // ── LOGG INN ──
-const loggInn = async () => {
-  if (passord !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-    setPassordFeil('Feil passord, prøv igjen')
-    return
+  const loggInn = async () => {
+    if (!passord) { setPassordFeil('Skriv inn passord'); return }
+    const hash = await sha256(passord)
+    const res: { passord_hash: string }[] = await sbGet('sm_admin')
+    if (!res.length || res[0].passord_hash !== hash) {
+      setPassordFeil('Feil passord, prøv igjen'); return
+    }
+    sessionStorage.setItem('sm_innlogget', 'ja')
+    setInnlogget(true)
   }
-  sessionStorage.setItem('sm_innlogget', 'ja')
-  setInnlogget(true)
-}
 
   // ── LAST DATA ──
   const lastAlt = useCallback(async () => {
@@ -260,7 +257,10 @@ const loggInn = async () => {
                   {aktiviteter.map((a, i) => (
                     <div key={a.id} className="adm-item" onClick={() => apneModal('aktivitet', i, { tag: a.tag, tittel: a.tittel, beskrivelse: a.beskrivelse, d1: a.d1, d2: a.d2, d3: a.d3 })}>
                       <div className="adm-item-txt"><strong>{a.tittel}</strong><span>{a.tag}</span></div>
-                      <button className="btn btn-sec btn-sm btn-icon">✏</button>
+                      <div className="adm-item-actions">
+                        <button className="btn btn-sec btn-sm btn-icon" onClick={e => { e.stopPropagation(); apneModal('aktivitet', i, { tag: a.tag, tittel: a.tittel, beskrivelse: a.beskrivelse, d1: a.d1, d2: a.d2, d3: a.d3 }) }}>✏</button>
+                        <button className="btn btn-danger btn-sm btn-icon" onClick={async e => { e.stopPropagation(); if(!confirm('Slette?')) return; await apiKall('DELETE', 'sm_aktiviteter', undefined, a.id); await lastAlt(); }}>🗑</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -279,7 +279,10 @@ const loggInn = async () => {
                   {kalender.map((k, i) => (
                     <div key={k.id} className="adm-item" onClick={() => apneModal('kalender', i, { dag: k.dag, mnd: k.mnd, tittel: k.tittel, beskrivelse: k.beskrivelse, pris: k.pris, pristype: k.pristype })}>
                       <div className="adm-item-txt"><strong>{k.tittel}</strong><span>{k.dag} {k.mnd}</span></div>
-                      <button className="btn btn-sec btn-sm btn-icon">✏</button>
+                      <div className="adm-item-actions">
+                        <button className="btn btn-sec btn-sm btn-icon" onClick={e => { e.stopPropagation(); apneModal('kalender', i, { dag: k.dag, mnd: k.mnd, tittel: k.tittel, beskrivelse: k.beskrivelse, pris: k.pris, pristype: k.pristype }) }}>✏</button>
+                        <button className="btn btn-danger btn-sm btn-icon" onClick={async e => { e.stopPropagation(); if(!confirm('Slette?')) return; await apiKall('DELETE', 'sm_kalender', undefined, k.id); await lastAlt(); }}>🗑</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -298,7 +301,10 @@ const loggInn = async () => {
                   {tjenester.map((t, i) => (
                     <div key={t.id} className="adm-item" onClick={() => apneModal('tjeneste', i, { navn: t.navn, pris: t.pris, varighet: t.varighet, beskrivelse: t.beskrivelse, ekstra: t.ekstra })}>
                       <div className="adm-item-txt"><strong>{t.navn}</strong><span>{t.pris} · {t.varighet}</span></div>
-                      <button className="btn btn-sec btn-sm btn-icon">✏</button>
+                      <div className="adm-item-actions">
+                        <button className="btn btn-sec btn-sm btn-icon" onClick={e => { e.stopPropagation(); apneModal('tjeneste', i, { navn: t.navn, pris: t.pris, varighet: t.varighet, beskrivelse: t.beskrivelse, ekstra: t.ekstra }) }}>✏</button>
+                        <button className="btn btn-danger btn-sm btn-icon" onClick={async e => { e.stopPropagation(); if(!confirm('Slette?')) return; await apiKall('DELETE', 'sm_tjenester', undefined, t.id); await lastAlt(); }}>🗑</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -317,7 +323,10 @@ const loggInn = async () => {
                   {referanser.map((r, i) => (
                     <div key={r.id} className="adm-item" onClick={() => apneModal('referanse', i, { navn: r.navn, tekst: r.tekst })}>
                       <div className="adm-item-txt"><strong>{r.navn}</strong><span>{r.tekst.substring(0, 60)}…</span></div>
-                      <button className="btn btn-sec btn-sm btn-icon">✏</button>
+                      <div className="adm-item-actions">
+                        <button className="btn btn-sec btn-sm btn-icon" onClick={e => { e.stopPropagation(); apneModal('referanse', i, { navn: r.navn, tekst: r.tekst }) }}>✏</button>
+                        <button className="btn btn-danger btn-sm btn-icon" onClick={async e => { e.stopPropagation(); if(!confirm('Slette?')) return; await apiKall('DELETE', 'sm_referanser', undefined, r.id); await lastAlt(); }}>🗑</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -515,6 +524,7 @@ html,body{height:100%;font-family:'Nunito',sans-serif;font-size:15px}
 .adm-item:hover{border-color:rgba(123,94,167,.35);background:rgba(123,94,167,.04)}
 .adm-item-txt{flex:1;min-width:0}
 .adm-item-txt strong{display:block;font-size:.83rem;color:#1C1228;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adm-item-actions{display:flex;gap:.4rem;flex-shrink:0}
 .adm-item-txt span{font-size:.73rem;color:#8A7A9A}
 .adm-empty{text-align:center;padding:2rem;color:#8A7A9A;font-size:.83rem}
 .galleri-adm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem}
